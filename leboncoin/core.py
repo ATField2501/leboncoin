@@ -27,7 +27,9 @@ def scan(url, max_nb_connection=10):
         raise ConnectionError("{} failed connections, aborting.".format(max_nb_connection)) from e
 
     soup = BeautifulSoup(r.text, "lxml")
-    ad_list = soup.find("div", class_="list-lbc").find_all("a")
+
+    is_ad = lambda tag: tag.name == "a" and "alertsLink" not in tag.get("class", [])
+    ad_list = soup.find("div", class_="list-lbc").find_all(is_ad)
 
     ads = []
 
@@ -86,7 +88,7 @@ def send_email(ad, config_file):
     subject = "Nouvelle annonce sur Leboncoin : {}".format(ad["title"])
 
     body = """Bonjour,\nUne nouvelle annonce sur Leboncoin satisfaisant vos critères de recherche vient d'être publiée.\n\n
-    Titre : {title}\nDate de publication : {date}\nPrix : {price}\nCatégorie : {category}\nLocalisation : {placement}\n""".format(**ad)
+    Titre : {title}\nDate de publication : {date}\nPrix : {price}\nCatégorie : {category}\nLocalisation : {placement}\nLien : {link}""".format(**ad)
 
     outbox = Outbox(username=username, password=password, server=server, port=port)
     email = Email(subject=subject, body=body, recipients=toaddrs)
