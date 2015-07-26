@@ -5,9 +5,12 @@ import re
 import time
 import sqlite3
 import json
+import logging
 from outbox import Outbox, Email
 import requests
 from bs4 import BeautifulSoup
+
+logger = logging.basicConfig(format='%(asctime)s :: %(levelname)s :: %(message)s', level=logging.DEBUG)
 
 
 def scan(url, max_nb_connection=10):
@@ -19,12 +22,14 @@ def scan(url, max_nb_connection=10):
             nb_connection += 1
             r = requests.get(url)
         except ConnectionError as e:
-            print(e)
+            logging.error(e)
         else:
             connected = True
 
     if nb_connection > max_nb_connection:
-        raise ConnectionError("{} failed connections, aborting.".format(max_nb_connection)) from e
+        connection_error_message = "{} failed connections, aborting.".format(max_nb_connection)
+        logging.error(connection_error_message)
+        raise ConnectionError(connection_error_message) from e
 
     soup = BeautifulSoup(r.text, "lxml")
 
@@ -120,9 +125,9 @@ def create_db(db_name):
     conn.close()
 
 def watch(url, db_name, config_file, init=False):
-    print("Scanning web page...")
+    logging.info("Scanning web page...")
     ad_list = scan(url)
-    print("Getting URL from database...")
+    logging.info("Getting URL from database...")
     links = get_links_db(db_name)
 
     for ad in ad_list:
@@ -130,7 +135,7 @@ def watch(url, db_name, config_file, init=False):
             if not init:
                 send_email(ad, config_file)
 
-            print("Adding ad '{}' to database".format(ad["title"]))
+            logging.debug("Adding ad '{}' to database".format(ad["title"]))
             add_ad(ad, db_name)
 
 
@@ -139,6 +144,6 @@ def start(url, db_name, config_file="config.json", time_interval=5):
     watch(url, db_name, config_file, init=True)
 
     while True:
-        print("Sleeping for {} min".format(time_interval))
+        logging.info("Sleeping for {} min".format(time_interval))
         time.sleep(time_interval * 60)
         watch(url, db_name, config_file)
