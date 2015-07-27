@@ -13,7 +13,7 @@ setup(
     long_description=''.join(open('README.rst').readlines()),
     keywords='some, keywords',
     author='yourname',
-    author_email='yourmail',
+    author_email='raphael0202@yahoo.fr',
     license='GPLv2',
     packages=find_packages(),
     classifiers=[

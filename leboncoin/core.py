@@ -29,7 +29,7 @@ def scan(url, max_nb_connection=10):
     if nb_connection > max_nb_connection:
         connection_error_message = "{} failed connections, aborting.".format(max_nb_connection)
         logging.error(connection_error_message)
-        raise ConnectionError(connection_error_message) from e
+        raise requests.exceptions.ConnectionError(connection_error_message) from e
 
     soup = BeautifulSoup(r.text, "lxml")
 
