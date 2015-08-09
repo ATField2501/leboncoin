@@ -78,8 +78,7 @@ def scan(url, max_nb_connection=10):
 
     return ads
 
-def send_email(ad, config_file):
-
+def _send_email(config_file, subject, body):
     with open(config_file, 'r') as f:
         config = json.load(f)
 
@@ -90,14 +89,23 @@ def send_email(ad, config_file):
     username = config["username"]
     password = config["password"]
 
+    outbox = Outbox(username=username, password=password, server=server, port=port)
+    email = Email(subject=subject, body=body, recipients=toaddrs)
+    outbox.send(email)
+
+
+def send_email(ad, config_file):
     subject = "Nouvelle annonce sur Leboncoin : {}".format(ad["title"])
 
     body = """Bonjour,\nUne nouvelle annonce sur Leboncoin satisfaisant vos critères de recherche vient d'être publiée.\n\n
     Titre : {title}\nDate de publication : {date}\nPrix : {price}\nCatégorie : {category}\nLocalisation : {placement}\nLien : {link}""".format(**ad)
 
-    outbox = Outbox(username=username, password=password, server=server, port=port)
-    email = Email(subject=subject, body=body, recipients=toaddrs)
-    outbox.send(email)
+    _send_email(config_file, subject, body)
+
+def send_first_email(config_file, link):
+    subject = "Nouvelle alerte ajoutée"
+    body = """Bonjour,\nVous venez de créer une nouvelle alerte à l'adresse suivante :\n{}""".format(link)
+    _send_email(config, subject, body)
 
 
 def add_ad(ad, db_name):
@@ -140,6 +148,7 @@ def watch(url, db_name, config_file, init=False):
 
 
 def start(url, db_name, config_file="config.json", time_interval=5):
+    send_first_email(config_file, url)
     create_db(db_name)
     watch(url, db_name, config_file, init=True)
 
