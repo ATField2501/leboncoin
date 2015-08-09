@@ -10,7 +10,7 @@ from outbox import Outbox, Email
 import requests
 from bs4 import BeautifulSoup
 
-logger = logging.basicConfig(format='%(asctime)s :: %(levelname)s :: %(message)s', level=logging.DEBUG)
+logger = logging.basicConfig(filename="err.log", format='%(asctime)s :: %(levelname)s :: %(message)s', level=logging.DEBUG)
 
 
 def scan(url, max_nb_connection=10):
